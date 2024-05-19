@@ -22,7 +22,7 @@ router.post('/upload', async function(req, res) {
     });
   }
 
-  const { create } = await import('ipfs-core')
+  const { create } = await import('ipfs-http-client')
   const ipfs = await create();
   let result = {};
   const buffer = Buffer.concat(bufferList);
