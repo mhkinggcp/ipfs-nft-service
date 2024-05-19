@@ -22,8 +22,15 @@ router.post('/upload', async function(req, res) {
         let result = {};
         const buffer = Buffer.concat(bufferList);
         result = await ipfs.add(buffer);
-      
-        console.log(result);
+
+        const info = {
+          "image": "ipfs://" + result.path,
+          "name": "Project NFT",
+          "description": "This is the NFT from Project NFT",
+          "attributes": []
+        }
+        result = await ipfs.add(info);
+
         return res.status(200).send(result);
       });
     });

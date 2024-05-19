@@ -4,14 +4,16 @@ import { formatBalance, formatChainAsNum } from "./utils";
 import detectEthereumProvider from "@metamask/detect-provider";
 import './App.css'
 import axios from 'axios'
+import { abi } from './utils/index';
+import * as ethers from 'ethers';
 
 const App = () => {
   const initialState = { accounts: [], balance: "", chainId: "" };
   const [wallet, setWallet] = useState(initialState);
+  const [step, setStep] = useState(0);
+  const [path, setPath] = useState("");
 
-  const [isConnecting, setIsConnecting] = useState(false);  /* New */
-  const [error, setError] = useState(false);                /* New */
-  const [errorMessage, setErrorMessage] = useState("");     /* New */
+  const [isConnecting, setIsConnecting] = useState(false);
   const [image, setImage] = useState<any>(null);
 
   useEffect(() => {
@@ -60,41 +62,28 @@ const App = () => {
     setWallet({ accounts, balance, chainId });
   };
 
-  const handleConnect = async () => {                    /* Updated */
-    setIsConnecting(true);                                 /* New */
-    await window.ethereum.request({                      /* Updated */
+  const handleConnect = async () => {
+    setIsConnecting(true);
+    await window.ethereum.request({
         method: "eth_requestAccounts",
       })
-      .then((accounts: []) => {                           /* New */
-        setError(false);                                  /* New */
-        updateWallet(accounts);                           /* New */
-      })                                                  /* New */
-      .catch((err: any) => {                              /* New */
-        setError(true);                                   /* New */
-        setErrorMessage(err.message);                     /* New */
-      });                                                 /* New */
-    setIsConnecting(false);                               /* New */
+      .then((accounts: []) => {
+        updateWallet(accounts);
+      })
+      .catch((err: any) => {
+        console.log(err);
+      });
+    setIsConnecting(false);
   };
 
   const disableConnect = Boolean(wallet) && isConnecting;
 
   const onClickTransaction = async () => {
-    await window.ethereum.request({
-      method: "eth_sendTransaction",
-      // The following sends an EIP-1559 transaction. Legacy transactions are also supported.
-      params: [
-        {
-          // The user's active address.
-          from: wallet.accounts[0],
-          // Required except during contract publications.
-          to: '0xb794f5ea0ba39494ce839613fffba74279579268',
-          // Only required to send ether to the recipient from the initiating external account.
-          value: 0,
-        },
-      ],
-    })
-    .then((txHash: string) => console.log(txHash))
-    .catch((error: any) => console.error(error));
+    const provider = new ethers.BrowserProvider(window.ethereum);
+    const signer = await provider.getSigner(wallet.accounts[0]);
+    const contract = new ethers.Contract("0x52bfdf3638af98cbd8057a5033ec194fd1c75ea7", abi, signer);
+
+    await contract.mintNft(wallet.accounts[0], "ipfs://" + path);
   }
 
   const onChangeImage = async (e: any) => {
@@ -107,7 +96,7 @@ const App = () => {
       formData.append('files', image, 'file.png');
 
       axios.post(
-          'http://127.0.0.1:3000/upload',
+          'http://34.130.3.149:3000/upload',
           formData,
           {
               headers: {
@@ -116,7 +105,8 @@ const App = () => {
           }
       )
       .then((res: any) => {
-          console.log(`Success` + res.data);
+          setPath(res.data.path);
+          setStep(1);
       })
       .catch((err: any) => {
           console.log(err);
@@ -124,33 +114,50 @@ const App = () => {
     }
   }
 
+  const onClickView = async () => {
+    const provider = new ethers.BrowserProvider(window.ethereum);
+    const signer = await provider.getSigner(wallet.accounts[0]);
+    const contract = new ethers.Contract("0x52bfdf3638af98cbd8057a5033ec194fd1c75ea7", abi, signer);
+
+    const uri = await contract.tokenURI(0);
+    console.log(uri)
+  }
+
   return (
     <div className="App">
-      {window.ethereum?.isMetaMask && wallet.accounts.length < 1 && (  /* Updated */
-        <button disabled={disableConnect} onClick={handleConnect}>Connect MetaMask</button>
-      )}
-
-      {wallet.accounts.length > 0 && (
-        <>
-          <div>Wallet Accounts: {wallet.accounts[0]}</div>
-          <div>Wallet Balance: {wallet.balance}</div>
-          <div>Hex ChainId: {wallet.chainId}</div>
-          <div>Numeric ChainId: {formatChainAsNum(wallet.chainId)}</div>
-          <div>
-            <button onClick={onClickTransaction}>Send transaction</button>
-          </div>
-        </>
-      )}
-      {error && (  /* New code block */
-        <div onClick={() => setError(false)}>
-          <strong>Error:</strong> {errorMessage}
+      {
+        step == 0 &&
+        <div>
+          <input type="file" accept="image/*" onChange={onChangeImage}/>
+          <button onClick={onClickSubmit}>Submit</button>
         </div>
-      )}
+      }
 
-      <div>
-        <input type="file" onChange={onChangeImage}/>
-        <button onClick={onClickSubmit}>Submit</button>
-      </div>
+      {
+        step == 1 &&
+        window.ethereum?.isMetaMask && wallet.accounts.length < 1 && (  /* Updated */
+          <button disabled={disableConnect} onClick={handleConnect}>Connect MetaMask</button>
+        )
+      }
+
+      {
+        step == 1 &&
+        wallet.accounts.length > 0 && (
+          <>
+            <div>Wallet Accounts: {wallet.accounts[0]}</div>
+            <div>Wallet Balance: {wallet.balance}</div>
+            <div>Hex ChainId: {wallet.chainId}</div>
+            <div>Numeric ChainId: {formatChainAsNum(wallet.chainId)}</div>
+            <div>
+              <button onClick={onClickTransaction}>Send transaction</button>
+            </div>
+          </>
+        )
+      }
+
+      {
+        <button onClick={onClickView}>view uri</button>
+      }
 
     </div>
   );
