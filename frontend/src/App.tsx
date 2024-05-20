@@ -10,11 +10,12 @@ import * as ethers from 'ethers';
 const App = () => {
   const initialState = { accounts: [], balance: "", chainId: "" };
   const [wallet, setWallet] = useState(initialState);
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState(2);
   const [path, setPath] = useState("");
 
   const [isConnecting, setIsConnecting] = useState(false);
   const [image, setImage] = useState<any>(null);
+  const [email, setEmail] = useState("");
 
   useEffect(() => {
     const refreshAccounts = (accounts: any) => {
@@ -83,11 +84,17 @@ const App = () => {
     const signer = await provider.getSigner(wallet.accounts[0]);
     const contract = new ethers.Contract("0x52bfdf3638af98cbd8057a5033ec194fd1c75ea7", abi, signer);
 
-    await contract.mintNft(wallet.accounts[0], "ipfs://" + path);
+    const result = await contract.mintNft(wallet.accounts[0], "ipfs://" + path);
+    console.log(result);
+    setStep(2);
   }
 
   const onChangeImage = async (e: any) => {
     setImage(e.target.files[0]);
+  }
+
+  const onInputEmail = async (e: any) => {
+    setEmail(e.target.value);
   }
 
   const onClickSubmit = async () => {
@@ -112,6 +119,21 @@ const App = () => {
           console.log(err);
       })
     }
+  }
+
+  const onClickSend = async () => {
+    axios.post(
+      'http://34.130.3.149:3000/email',
+      { email: email,
+        nftMetadata: "https://ipfs.io/ipfs/" + path }
+    )
+    .then((res: any) => {
+        setPath(res.data.path);
+        setStep(1);
+    })
+    .catch((err: any) => {
+        console.log(err);
+    })
   }
 
   return (
@@ -144,6 +166,14 @@ const App = () => {
             </div>
           </>
         )
+      }
+
+      {
+        step == 2 &&
+        <div>
+          <input type="text" value={email} onInput={onInputEmail}></input>
+          <button onClick={onClickSend}>Send Email</button>
+        </div>
       }
 
     </div>

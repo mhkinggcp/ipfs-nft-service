@@ -29,7 +29,7 @@ router.post('/upload', async function(req, res) {
           "description": "This is the NFT from Project NFT",
           "attributes": []
         }
-        result = await ipfs.add(info);
+        result = await ipfs.add(JSON.stringify(info));
 
         return res.status(200).send(result);
       });
