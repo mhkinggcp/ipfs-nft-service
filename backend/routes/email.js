@@ -26,8 +26,7 @@ router.post('/', function(req, res) {
           "CustomID": ""
         }
       ]
-    })  
-  request
+    })
     .then((result) => {
       return res.status(200).send(result);
     })

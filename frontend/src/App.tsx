@@ -10,7 +10,7 @@ import * as ethers from 'ethers';
 const App = () => {
   const initialState = { accounts: [], balance: "", chainId: "" };
   const [wallet, setWallet] = useState(initialState);
-  const [step, setStep] = useState(2);
+  const [step, setStep] = useState(3);
   const [path, setPath] = useState("");
 
   const [isConnecting, setIsConnecting] = useState(false);
@@ -128,8 +128,7 @@ const App = () => {
         nftMetadata: "https://ipfs.io/ipfs/" + path }
     )
     .then((res: any) => {
-        setPath(res.data.path);
-        setStep(1);
+        setStep(3);
     })
     .catch((err: any) => {
         console.log(err);
@@ -141,6 +140,7 @@ const App = () => {
       {
         step == 0 &&
         <div>
+          <h1>Step 1: Upload file to IPFS</h1>
           <input type="file" accept="image/*" onChange={onChangeImage}/>
           <button onClick={onClickSubmit}>Submit</button>
         </div>
@@ -157,6 +157,7 @@ const App = () => {
         step == 1 &&
         wallet.accounts.length > 0 && (
           <>
+            <h1>Step 2: Mint NFT on Amoy (Polygon testnet)</h1>
             <div>Wallet Accounts: {wallet.accounts[0]}</div>
             <div>Wallet Balance: {wallet.balance}</div>
             <div>Hex ChainId: {wallet.chainId}</div>
@@ -171,9 +172,17 @@ const App = () => {
       {
         step == 2 &&
         <div>
-          <input type="text" value={email} onInput={onInputEmail}></input>
+          <h1>Step 3: Send Confirmation Email</h1>
+          <label>Email
+            <input type="text" value={email} onInput={onInputEmail}></input>
+          </label><br/>
           <button onClick={onClickSend}>Send Email</button>
         </div>
+      }
+
+      {
+        step == 3 &&
+        <p>All Done. Thank you for using Project NFT.</p>
       }
 
     </div>
