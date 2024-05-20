@@ -6,6 +6,7 @@ var logger = require('morgan');
 var busboy = require('connect-busboy');
 
 var indexRouter = require('./routes/index');
+var emailRouter = require('./routes/email');
 
 var app = express();
 
@@ -17,6 +18,7 @@ app.use(cookieParser());
 app.use(busboy({ immediate: true }));
 
 app.use('/', indexRouter);
+app.use('/email', emailRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

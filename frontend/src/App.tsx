@@ -114,15 +114,6 @@ const App = () => {
     }
   }
 
-  const onClickView = async () => {
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    const signer = await provider.getSigner(wallet.accounts[0]);
-    const contract = new ethers.Contract("0x52bfdf3638af98cbd8057a5033ec194fd1c75ea7", abi, signer);
-
-    const uri = await contract.tokenURI(0);
-    console.log(uri)
-  }
-
   return (
     <div className="App">
       {
@@ -153,10 +144,6 @@ const App = () => {
             </div>
           </>
         )
-      }
-
-      {
-        <button onClick={onClickView}>view uri</button>
       }
 
     </div>
