@@ -5,8 +5,8 @@ require('dotenv').config()
 const mailjet = require('node-mailjet')
   .apiConnect(process.env.API_KEY, process.env.SECRET_KEY)
 
-router.post('/', function(req, res) {
-  const request = mailjet
+router.post('/', async function(req, res) {
+  await mailjet
     .post("send", {'version': 'v3.1'})
     .request({
       "Messages":[
@@ -27,12 +27,7 @@ router.post('/', function(req, res) {
         }
       ]
     })
-    .then((result) => {
-      return res.status(200).send(result);
-    })
-    .catch((err) => {
-      console.log(err.statusCode)
-    })
+   return res.status(200).send({});
 });
 
 module.exports = router;

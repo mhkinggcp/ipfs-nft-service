@@ -10,7 +10,7 @@ import * as ethers from 'ethers';
 const App = () => {
   const initialState = { accounts: [], balance: "", chainId: "" };
   const [wallet, setWallet] = useState(initialState);
-  const [step, setStep] = useState(3);
+  const [step, setStep] = useState(0);
   const [path, setPath] = useState("");
 
   const [isConnecting, setIsConnecting] = useState(false);
@@ -80,13 +80,16 @@ const App = () => {
   const disableConnect = Boolean(wallet) && isConnecting;
 
   const onClickTransaction = async () => {
+    if (wallet.chainId != '0x13882') {
+      alert('Please change to network to Amoy. https://docs.polygon.technology/tools/wallets/metamask/add-polygon-network/');
+    }
     const provider = new ethers.BrowserProvider(window.ethereum);
     const signer = await provider.getSigner(wallet.accounts[0]);
     const contract = new ethers.Contract("0x52bfdf3638af98cbd8057a5033ec194fd1c75ea7", abi, signer);
 
-    const result = await contract.mintNft(wallet.accounts[0], "ipfs://" + path);
-    console.log(result);
-    setStep(2);
+    await contract.mintNft(wallet.accounts[0], "ipfs://" + path);
+
+    setStep(3);
   }
 
   const onChangeImage = async (e: any) => {
@@ -113,7 +116,7 @@ const App = () => {
       )
       .then((res: any) => {
           setPath(res.data.path);
-          setStep(1);
+          setStep(2);
       })
       .catch((err: any) => {
           console.log(err);
@@ -127,8 +130,8 @@ const App = () => {
       { email: email,
         nftMetadata: "https://ipfs.io/ipfs/" + path }
     )
-    .then((res: any) => {
-        setStep(3);
+    .then(() => {
+        setStep(4);
     })
     .catch((err: any) => {
         console.log(err);
@@ -140,6 +143,17 @@ const App = () => {
       {
         step == 0 &&
         <div>
+          <h1>Step 1: Input user email</h1>
+          <label>Email
+            <input type="text" value={email} onInput={onInputEmail}></input>
+          </label><br/>
+          <button onClick={() => setStep(1)}>Next</button>
+        </div>
+      }
+
+      {
+        step == 1 &&
+        <div>
           <h1>Step 1: Upload file to IPFS</h1>
           <input type="file" accept="image/*" onChange={onChangeImage}/>
           <button onClick={onClickSubmit}>Submit</button>
@@ -147,14 +161,14 @@ const App = () => {
       }
 
       {
-        step == 1 &&
+        step == 2 &&
         window.ethereum?.isMetaMask && wallet.accounts.length < 1 && (  /* Updated */
           <button disabled={disableConnect} onClick={handleConnect}>Connect MetaMask</button>
         )
       }
 
       {
-        step == 1 &&
+        step == 2 &&
         wallet.accounts.length > 0 && (
           <>
             <h1>Step 2: Mint NFT on Amoy (Polygon testnet)</h1>
@@ -170,18 +184,15 @@ const App = () => {
       }
 
       {
-        step == 2 &&
+        step == 3 &&
         <div>
           <h1>Step 3: Send Confirmation Email</h1>
-          <label>Email
-            <input type="text" value={email} onInput={onInputEmail}></input>
-          </label><br/>
           <button onClick={onClickSend}>Send Email</button>
         </div>
       }
 
       {
-        step == 3 &&
+        step == 4 &&
         <p>All Done. Thank you for using Project NFT.</p>
       }
 
