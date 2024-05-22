@@ -25,17 +25,27 @@ VM: Ubuntu 20.04 LTS x86/64, amd64 focal image
 Run the following command one by one
 
 // For version 0.28.0
+
 wget https://dist.ipfs.tech/kubo/v0.28.0/kubo_v0.28.0_linux-amd64.tar.gz
+
 tar -xvzf kubo_v0.28.0_linux-amd64.tar.gz
+
 cd kubo
+
 sudo bash install.sh
+
 ipfs --version
+
 ipfs init
+
 ipfs daemon
 
 When you run ipfs daemon, there might be error on buffer size.
+
 Run the following in root to solve the issue, https://github.com/quic-go/quic-go/wiki/UDP-Buffer-Sizes
+
 sysctl -w net.core.rmem_max=7500000
+
 sysctl -w net.core.wmem_max=7500000
 
 
